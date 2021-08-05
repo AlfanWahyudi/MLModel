@@ -3,6 +3,7 @@ import numpy as np
 import string 
 import re #regex library
 import itertools
+from nltk.corpus import stopwords
 
 def case_folding(text):
     return text.str.lower()
@@ -34,28 +35,6 @@ def remove_punctuation(text):
 def remove_number(text):
     return ''.join((word for word in text if not word.isdigit()))
 
-def move_list(data_dictionary):
-    newList = []
-    lenght = len(data_dictionary)
-    
-    for row in range(lenght):
-        txt_split = re.split(r"[\t:]+", data_dictionary[row])
-        newList.append(txt_split)
-        
-    return newList
-
-def join_two_dict(dict1, dict2):
-    dictSlangWord = pd.read_csv(dict1, names= ["dict1"], header = None)
-    dictKBBA = pd.read_csv(dict2, names= ["dict2"], header = None)
-
-    slangWord = move_list(dictSlangWord['dict1'])
-    KBBA = move_list(dictKBBA['dict2'])
-
-    for x in KBBA:
-        slangWord.append(x)
-    
-    return slangWord
-
 def many_letters(word):
     word = list(word)
     Letters = []
@@ -78,7 +57,30 @@ def remove_duplicate(text):
 
     return ' '.join(words)
 
-def convert_slang(text, dictionary): 
+def move_list(data_dictionary):
+    newList = []
+    lenght = len(data_dictionary)
+    
+    for row in range(lenght):
+        txt_split = re.split(r"[\t:]+", data_dictionary[row])
+        newList.append(txt_split)
+        
+    return newList
+
+def join_two_dict(dict1, dict2):
+    dictSlangWord = pd.read_csv(dict1, names= ["dict1"], header = None)
+    dictKBBA = pd.read_csv(dict2, names= ["dict2"], header = None)
+
+    slangWord = move_list(dictSlangWord['dict1'])
+    KBBA = move_list(dictKBBA['dict2'])
+
+    for x in KBBA:
+        slangWord.append(x)
+    
+    return slangWord
+
+def convert_slang(text):
+    dictionary =  join_two_dict('slangword.txt','kbba.txt')
     removeDuplicate = remove_duplicate(text)
     words = removeDuplicate.split()
 
@@ -127,6 +129,27 @@ def convert_negation(text):
 def tokenization(text):
     token = re.split('\W+', text)
     return token
+
+#stopword
+def combine_stopword_dict():
+    list_stopwords = stopwords.words('indonesian')
+    list_stopwords.extend(["yg", "dg", "rt", "dgn", "ny", "d", 'klo', 
+                        'kalo', 'amp', 'biar', 'bikin', 'bilang', 
+                        'gak', 'ga', 'krn', 'nya', 'nih', 'sih', 
+                        'si', 'tau', 'tdk', 'tuh', 'utk', 'ya', 
+                        'jd', 'jgn', 'sdh', 'aja', 'n', 't', 
+                        'nyg', 'hehe', 'pen', 'u', 'nan', 'loh', 'rt',
+                        '&amp', 'yah'])
+
+    txt_stopword = pd.read_csv("stopwords.txt", names= ["stopwords"], header = None)
+    list_stopwords.extend(txt_stopword["stopwords"][0].split(' '))
+    set_stopwords = set(list_stopwords)
+
+    return set_stopwords
+
+def stopwords_removal(words):
+    stopwordsDict = combine_stopword_dict()
+    return [word for word in words if word not in stopwordsDict]
 
 
 if __name__ == "__main__":

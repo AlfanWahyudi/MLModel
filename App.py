@@ -1,3 +1,4 @@
+from os import remove
 from re import escape
 from altair.vegalite.v4.schema.core import Transform
 import streamlit as st
@@ -35,11 +36,44 @@ def main_app():
     #get column name of data 
     column_name = data_choose.columns.values.tolist()
 
+    # dataset = data_choose[column_name[0]].str.encode('ascii', 'ignore')
+
     #Preprocessing
-    caseFolding = Preprocessing.case_folding(data_choose[column_name[0]])
     st.write("Case Folding")
+    caseFolding = Preprocessing.case_folding(data_choose[column_name[0]])
     st.write(caseFolding)
 
+    st.write("Convert Emoticon")
+    convertEmot =  caseFolding.apply(Preprocessing.convert_emot)
+    st.write(convertEmot)
 
+    st.write("Convert Slang Word")
+    slangWord = convertEmot.apply(Preprocessing.convert_slang)
+    st.write(slangWord)
+
+    st.write("Cleaning")
+    cleanHtml =   slangWord.apply(Preprocessing.clean_html)
+    removeTxtSpecial =  cleanHtml.apply(Preprocessing.remove_text_special)
+    removeWhitespace =  removeTxtSpecial.apply(Preprocessing.remove_whitespace)    
+    removeSingleChar = removeWhitespace.apply(Preprocessing.remove_single_char)
+    removeNonASCII = removeSingleChar.apply(Preprocessing.remove_non_ASCII)
+    removePuntuation = removeNonASCII.apply(Preprocessing.remove_punctuation)
+    removeNumber = removePuntuation.apply(Preprocessing.remove_number)
+    st.write(removeNumber)
+
+
+    st.write("Convert Negation")
+    convertNegation = removeNumber.apply(Preprocessing.convert_slang)
+    st.write(convertNegation)
+
+    st.write("Tokenization")
+    tokenization = convertNegation.apply(Preprocessing.tokenization)
+    st.write(tokenization)
+
+    st.write("Stoword Removal")
+    stopwordsRemoval = tokenization.apply(Preprocessing.stopwords_removal)
+    st.write(stopwordsRemoval)
+
+    
 if __name__ == "__main__":
     main_app()

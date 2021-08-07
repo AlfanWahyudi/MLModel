@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-import Data
+from Data import Data
 from Preprocessing import CaseFold, Noise, Normalization, Tokenization, Stopword, Negation
     
 class App:
@@ -20,14 +20,17 @@ class App:
             0.0, 100.0, (25.0, 75.0)
         )
 
-        csv_file = Data.input_csv()
+        dataComment = Data()
+
+
+        csv_file = dataComment.input_csv()
         if not csv_file:
             st.write("Upload CSV file to get started")
             return
         
         df = pd.read_csv(csv_file)   
-        Data.explore(df)
-        data_choose = Data.choose_column(df)
+        dataComment.explore(df)
+        data_choose = dataComment.choose_column(df)
         st.write(data_choose)
         
         #get column name of data 

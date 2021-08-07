@@ -5,167 +5,179 @@ import re #regex library
 import itertools
 from nltk.corpus import stopwords
 
-def case_folding(text):
-    return text.str.lower()
+class Preprocessing:
+    def __init__(self, data):
+        self.__data = data
 
-def clean_html(text):
-    cleanr = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
-    cleantext = re.sub(cleanr, '', text)
+    @property
+    def data(self):
+        return self.__data
 
-    return cleantext
+    @data.setter
+    def data(self, input):
+        self.__data = input
+class CaseFold(Preprocessing):
+    def __init__(self, data):
+        super().__init__(data)
 
-def remove_text_special(text):
-    text = text.replace('\\t'," ").replace('\\n'," ").replace('\\u'," ").replace('\\',"")
-    text = ' '.join(re.sub(r"([@#][A-Za-z0-9]+)|(\w+:\/\/\S+)"," ", text).split())
-
-    return text.replace("http://", " ").replace("https://", " ")
-
-def remove_whitespace(text):
-    return " ".join(text.split())
-
-def remove_single_char(text):
-    return re.sub(r"\b[a-zA-Z]\b", "", text)
-
-def remove_non_ASCII(text):
-    return text.encode('ascii', 'replace').decode('ascii')
-
-def remove_punctuation(text):
-    return text.translate(str.maketrans("","",string.punctuation))
-
-def remove_number(text):
-    return ''.join((word for word in text if not word.isdigit()))
-
-def many_letters(word):
-    word = list(word)
-    Letters = []
+    def case_folding(self):
+        return self.data.str.lower()
     
-    for letter in word:
-        if letter not in Letters:
-            Letters.append(letter)
-            
-    return len(Letters)
-
-def remove_duplicate(text):
-    words = text.split()
+class Noise(Preprocessing):
+    def __init__(self, data):
+        super().__init__(data)
     
-    for index, word in enumerate(words):
-        numLetters = many_letters(word)
-        if numLetters > 2:
-            words[index] = ''.join(c[0] for c in itertools.groupby(word))
-        else:
-            words[index] = ''.join(sorted(set(word), key=word.index))     
+    def clean_html(self, data):
+        cleanr = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
+        cleantext = re.sub(cleanr, '', data)
 
-    return ' '.join(words)
+        return cleantext
 
-def move_list(data_dictionary):
-    newList = []
-    lenght = len(data_dictionary)
-    
-    for row in range(lenght):
-        txt_split = re.split(r"[\t:]+", data_dictionary[row])
-        newList.append(txt_split)
+    def remove_text_special(self, data):
+        data = data.replace('\\t'," ").replace('\\n'," ").replace('\\u'," ").replace('\\',"")
+        data = ' '.join(re.sub(r"([@#][A-Za-z0-9]+)|(\w+:\/\/\S+)"," ", data).split())
+
+        return data.replace("http://", " ").replace("https://", " ")
+
+    def remove_non_ASCII(self, data):
+        return data.encode('ascii', 'replace').decode('ascii')
+
+    def remove_punctuation(self, data):
+        return data.translate(str.maketrans("","",string.punctuation))
+
+    def remove_number(self, data):
+        return ''.join((word for word in data if not word.isdigit()))
+
+    def remove_whitespace(self, data):
+        return " ".join(data.split())
+
+    def remove_single_char(self, data):
+        return re.sub(r"\b[a-zA-Z]\b", "", data)
+
+class Normalization(Preprocessing):
+    def __init__(self, data):
+        super().__init__(data)
+        self.emoticon_dict = {"senang" : [">:]", ":-)", ":)", ":o)", ":]", ":3", ":c)", ":>", "=]", "8)", "=)", ":}", ":^)"], 
+                "tertawa" : [">:D", ":-D", ":D", "8-D", "8D", "x-D", "xD", "XD", "=-D", "=D", "=-3", "=3"], 
+                "sedih" : [">:[", ":-(", ":(", ":-c", ":c", ":-<", ":<", ":-[", ":[", ":{", ">", ".><.", "<>", ".<", ":’("],
+                "jilat" : [">:P", ":-P", ":P", "X-P", "x-p", "xp", "XP", ":-p", ":p", "=p", ":-Þ", ":Þ", ":-b", ":b"],
+                "terkejut" : [">:o", ">:O", ":-O", ":O", "°o°", "°O°", ":O", "o_O", "o.O", "8-0"],
+                "kesal" : [">:/", ":-/", ":-.", ":/", "=/"],
+                "ekspresi datar" : [":|", ":-|"]}
+
+    def many_letters(self, word):
+        word = list(word)
+        Letters = []
         
-    return newList
-
-def join_two_dict(dict1, dict2):
-    dictSlangWord = pd.read_csv(dict1, names= ["dict1"], header = None)
-    dictKBBA = pd.read_csv(dict2, names= ["dict2"], header = None)
-
-    slangWord = move_list(dictSlangWord['dict1'])
-    KBBA = move_list(dictKBBA['dict2'])
-
-    for x in KBBA:
-        slangWord.append(x)
-    
-    return slangWord
-
-def convert_slang(text):
-    dictionary =  join_two_dict('slangword.txt','kbba.txt')
-    removeDuplicate = remove_duplicate(text)
-    words = removeDuplicate.split()
-
-    for word in range(len(words)):
-        for index in range(len(dictionary)):
-            if words[word] == dictionary[index][0]:
-                words[word] = dictionary[index][1]
+        for letter in word:
+            if letter not in Letters:
+                Letters.append(letter)
                 
-    return ' '.join(words)
+        return len(Letters)
 
-emoticon = {"senang" : [">:]", ":-)", ":)", ":o)", ":]", ":3", ":c)", ":>", "=]", "8)", "=)", ":}", ":^)"], 
-            "tertawa" : [">:D", ":-D", ":D", "8-D", "8D", "x-D", "xD", "XD", "=-D", "=D", "=-3", "=3"], 
-            "sedih" : [">:[", ":-(", ":(", ":-c", ":c", ":-<", ":<", ":-[", ":[", ":{", ">", ".><.", "<>", ".<", ":’("],
-            "jilat" : [">:P", ":-P", ":P", "X-P", "x-p", "xp", "XP", ":-p", ":p", "=p", ":-Þ", ":Þ", ":-b", ":b"],
-            "terkejut" : [">:o", ">:O", ":-O", ":O", "°o°", "°O°", ":O", "o_O", "o.O", "8-0"],
-            "kesal" : [">:/", ":-/", ":-.", ":/", "=/"],
-            "ekspresi datar" : [":|", ":-|"]}
+    def remove_duplicate(self, data):
+        words = data.split()
+        
+        for index, word in enumerate(words):
+            numLetters = self.many_letters(word)
+            if numLetters > 2:
+                words[index] = ''.join(c[0] for c in itertools.groupby(word))
+            else:
+                words[index] = ''.join(sorted(set(word), key=word.index))     
 
-def convert_emot(text):
-    words = text.split()
-    
-    for word in range(len(words)):
-        for txt, emots in emoticon.items():
-            for emot in range(len(emots)):
-                if words[word] == emots[emot]:
-                    words[word] = txt
-                    
-    return ' '.join(words)
+        return ' '.join(words)
 
-negationWord = ['ga', 'ngga', 'tidak', 
-               'bkn', 'tida', 'tak', 
-               'jangan', 'enggan', 'gak']
-
-def convert_negation(text):
-    words = text.split()
-    
-    for index, word in enumerate(words):
-        for negation in range(len(negationWord)):
-            if words[index] == negationWord[negation]:
-                nxt = index + 1 
-                words[index] = negationWord[negation] + words[nxt]
-                words.pop(nxt)
+    def move_list(self, data_dictionary):
+        newList = []
+        lenght = len(data_dictionary)
+        
+        for row in range(lenght):
+            txt_split = re.split(r"[\t:]+", data_dictionary[row])
+            newList.append(txt_split)
             
-    return ' '.join(words)
+        return newList
 
-def tokenization(text):
-    token = re.split('\W+', text)
-    return token
+    def join_two_dict(self, dict1, dict2):
+        dictionary1 = pd.read_csv(dict1, names= ["dict1"], header = None)
+        dictionary2 = pd.read_csv(dict2, names= ["dict2"], header = None)
 
-#stopword
-def combine_stopword_dict():
-    list_stopwords = stopwords.words('indonesian')
-    list_stopwords.extend(["yg", "dg", "rt", "dgn", "ny", "d", 'klo', 
-                        'kalo', 'amp', 'biar', 'bikin', 'bilang', 
-                        'gak', 'ga', 'krn', 'nya', 'nih', 'sih', 
-                        'si', 'tau', 'tdk', 'tuh', 'utk', 'ya', 
-                        'jd', 'jgn', 'sdh', 'aja', 'n', 't', 
-                        'nyg', 'hehe', 'pen', 'u', 'nan', 'loh', 'rt',
-                        '&amp', 'yah'])
+        dict1_list = self.move_list(dictionary1['dict1'])
+        dict2_list = self.move_list(dictionary2['dict2'])
 
-    txt_stopword = pd.read_csv("stopwords.txt", names= ["stopwords"], header = None)
-    list_stopwords.extend(txt_stopword["stopwords"][0].split(' '))
-    set_stopwords = set(list_stopwords)
+        for word in dict2_list:
+            dict1_list.append(word)
+        
+        return dict1_list
 
-    return set_stopwords
+    def convert_slang(self, data):
+        dictionary =  self.join_two_dict('slangword.txt','kbba.txt')
+        removeDuplicate = self.remove_duplicate(data)
+        words = removeDuplicate.split()
 
-def stopwords_removal(words):
-    stopwordsDict = combine_stopword_dict()
-    return [word for word in words if word not in stopwordsDict]
+        for word in range(len(words)):
+            for index in range(len(dictionary)):
+                if words[word] == dictionary[index][0]:
+                    words[word] = dictionary[index][1]
+                    
+        return ' '.join(words)
 
+    def convert_emot(self, data):
+        words = data.split()
+        
+        for word in range(len(words)):
+            for txt, emots in self.emoticon_dict.items():
+                for emot in range(len(emots)):
+                    if words[word] == emots[emot]:
+                        words[word] = txt
+                        
+        return ' '.join(words)
 
-if __name__ == "__main__":
-    case_folding
-    clean_html
-    remove_text_special
-    remove_duplicate
-    remove_non_ASCII
-    remove_number
-    remove_punctuation
-    remove_single_char
-    remove_text_special
-    remove_whitespace
-    join_two_dict
-    many_letters
-    convert_slang
-    convert_emot
-    convert_negation
-    tokenization
+class Negation(Preprocessing):
+    def __init__(self, data):
+        super().__init__(data)
+        self.negationWord = ['ga', 'ngga', 'tidak', 
+                'bkn', 'tida', 'tak', 
+                'jangan', 'enggan', 'gak']
+    
+    def convert_negation(self, data):
+        words = data.split()
+        
+        for index, word in enumerate(words):
+            for negation in range(len(self.negationWord)):
+                if words[index] == self.negationWord[negation]:
+                    nxt = index + 1 
+                    words[index] = self.negationWord[negation] + words[nxt]
+                    words.pop(nxt)
+                
+        return ' '.join(words)
+
+class Tokenization(Preprocessing):
+    def __init__(self, data):
+        super().__init__(data)
+    
+    def token(self, data):
+        return re.split('\W+', data)
+
+class Stopword(Preprocessing):
+    def __init__(self, data):
+        super().__init__(data)
+
+    def combine_stopword_dict(self):
+        list_stopwords = stopwords.words('indonesian')
+        list_stopwords.extend(["yg", "dg", "rt", "dgn", "ny", "d", 'klo', 
+                            'kalo', 'amp', 'biar', 'bikin', 'bilang', 
+                            'gak', 'ga', 'krn', 'nya', 'nih', 'sih', 
+                            'si', 'tau', 'tdk', 'tuh', 'utk', 'ya', 
+                            'jd', 'jgn', 'sdh', 'aja', 'n', 't', 
+                            'nyg', 'hehe', 'pen', 'u', 'nan', 'loh', 'rt',
+                            '&amp', 'yah'])
+
+        txt_stopword = pd.read_csv("stopwords.txt", names= ["stopwords"], header = None)
+        list_stopwords.extend(txt_stopword["stopwords"][0].split(' '))
+        set_stopwords = set(list_stopwords)
+
+        return set_stopwords
+
+    def stopwords_removal(self, data):
+        stopwordsDict = self.combine_stopword_dict()
+        return [word for word in data if word not in stopwordsDict]

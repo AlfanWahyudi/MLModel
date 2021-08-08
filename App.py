@@ -80,25 +80,21 @@ class App:
         stopword = Stopword(token)
         stopwordRemoval = token.apply(stopword.stopwords_removal)
         st.write(stopwordRemoval)
+        stopwordRemoval.to_csv("Text_Preprocessing.csv")
 
-        if st.button("Proses"):
+        if st.button("Proses TF-IDF"):
             st.write("TF-IDF")
             tfIdf = TfIdf(stopwordRemoval)
-            convertTxtList = stopwordRemoval.apply(tfIdf.convert_text_list)
-            st.write(convertTxtList)
+            tf = stopwordRemoval.apply(tfIdf.calc_tf)
+            df = tfIdf.calc_df(stopwordRemoval)
+            idf = tfIdf.calc_idf(len(stopwordRemoval), df)
+            tfIdfResult = tfIdf.tf_idf(tf, idf)
+
+            df = pd.DataFrame(tfIdfResult)
+            new_df = df.assign(Label = data_choose[column_name[1]])
+            st.write(new_df.fillna(0))
 
             return
-
-        # st.write("TF")
-        # tf = stopwordRemoval.apply(tfIdf.calc_tf)
-        # df = stopwordRemoval.apply(tfIdf.calc_df)
-        # idf = tfIdf.calc_idf(len(stopwordRemoval), df)
-        # tfIdfResult = tfIdf.tf_idf(tf, idf)
-
-        # df = pd.DataFrame(tfIdfResult)
-        # new_df = df.assign(Label = data_choose['label'])
-        # new_df.fillna(0)
-        # st.write(new_df)
 
     if __name__ == "__main__":
         main_app()

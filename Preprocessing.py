@@ -80,10 +80,12 @@ class Normalization(Preprocessing):
         
         for index, word in enumerate(words):
             numLetters = self.many_letters(word)
-            if numLetters > 2:
+            if numLetters == 2 and len(word) == 3:
                 words[index] = ''.join(c[0] for c in itertools.groupby(word))
-            else:
-                words[index] = ''.join(sorted(set(word), key=word.index))     
+            elif numLetters > 2:
+                words[index] = ''.join(c[0] for c in itertools.groupby(word))
+            elif numLetters <= 2:
+                words[index] = ''.join(sorted(set(word), key=word.index))
 
         return ' '.join(words)
 
@@ -146,8 +148,9 @@ class Negation(Preprocessing):
             for negation in range(len(self.negationWord)):
                 if words[index] == self.negationWord[negation]:
                     nxt = index + 1 
-                    words[index] = self.negationWord[negation] + words[nxt]
-                    words.pop(nxt)
+                    if nxt != len(words):
+                        words[index] = self.negationWord[negation] + words[nxt]
+                        words.pop(nxt)
                 
         return ' '.join(words)
 

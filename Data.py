@@ -8,12 +8,12 @@ class Data:
         self.__dataset = None
 
     @property
-    def dataset(self):
-        return self.__dataset
-
-    @property
     def df(self):
         return self.__df
+        
+    @property
+    def dataset(self):
+        return self.__dataset
     
     @df.setter
     def df(self, input):
@@ -50,7 +50,7 @@ class Data:
         cols = st.multiselect('Columns', 
                                    df.columns.tolist(),
                                    df.columns.tolist())
-        df =df[cols]
+        df = df[cols]
         return df
 
     if __name__ == "__main__":

@@ -1,8 +1,9 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-from Data import Data
+from Data import *
 from Preprocessing import CaseFold, Noise, Normalization, Tokenization, Stopword, Negation
+from TfIdf import *
     
 class App:
     def main_app():
@@ -66,8 +67,8 @@ class App:
         st.write(removeSingleChar)
 
         st.write("Convert Negation")
-        negasi = Negation(removeSingleChar)
-        convertNegation = removeSingleChar.apply(negasi.convert_negation)
+        negation = Negation(removeSingleChar)
+        convertNegation = removeSingleChar.apply(negation.convert_negation)
         st.write(convertNegation)
         
         st.write("Tokenization")
@@ -80,6 +81,24 @@ class App:
         stopwordRemoval = token.apply(stopword.stopwords_removal)
         st.write(stopwordRemoval)
 
-        
+        if st.button("Proses"):
+            st.write("TF-IDF")
+            tfIdf = TfIdf(stopwordRemoval)
+            convertTxtList = stopwordRemoval.apply(tfIdf.convert_text_list)
+            st.write(convertTxtList)
+
+            return
+
+        # st.write("TF")
+        # tf = stopwordRemoval.apply(tfIdf.calc_tf)
+        # df = stopwordRemoval.apply(tfIdf.calc_df)
+        # idf = tfIdf.calc_idf(len(stopwordRemoval), df)
+        # tfIdfResult = tfIdf.tf_idf(tf, idf)
+
+        # df = pd.DataFrame(tfIdfResult)
+        # new_df = df.assign(Label = data_choose['label'])
+        # new_df.fillna(0)
+        # st.write(new_df)
+
     if __name__ == "__main__":
         main_app()

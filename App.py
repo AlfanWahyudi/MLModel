@@ -2,8 +2,10 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 from Data import *
-from Preprocessing import CaseFold, Noise, Normalization, Tokenization, Stopword, Negation
+from Preprocessing import *
 from TfIdf import *
+from classification import *
+from Evaluate import *
     
 class App:
     def main_app():
@@ -30,7 +32,6 @@ class App:
             return
         
         df = pd.read_csv(csv_file)   
-        dataComment.explore(df)
         data_choose = dataComment.choose_column(df)
         st.write(data_choose)
         
@@ -92,8 +93,22 @@ class App:
 
             df = pd.DataFrame(tfIdfResult)
             new_df = df.assign(Label = data_choose[column_name[1]])
-            st.write(new_df.fillna(0))
+            new_df = new_df.fillna(0)
 
+            st.write(new_df)
+
+            dataset = pd.DataFrame(new_df)
+
+            # full_data = new_df.astype(float).values.tolist()
+            # st.write(full_data)
+
+            k = 3
+            f = 5
+            lmknn = LMKNN(k)
+            kfold = KFold(dataset, f, lmknn)
+            result = kfold.execute_cross_val()
+            st.write(result)
+            
             return
 
     if __name__ == "__main__":

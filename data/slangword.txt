@@ -13,6 +13,7 @@ ampe:sampai
 anjir:waw
 anyway:ngomong-ngomong
 aq:aku
+anying:anjing
 asap:secepatnya
 ato:atau
 atw:atau

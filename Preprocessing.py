@@ -39,6 +39,15 @@ class Noise(Preprocessing):
 
         return data.replace("http://", " ").replace("https://", " ")
 
+    def remove_punctuation(self, data):
+        return data.translate(str.maketrans("","",string.punctuation))
+
+    def remove_number(self, data):
+        return ''.join((word for word in data if not word.isdigit()))
+
+    def remove_whitespace(self, data):
+        return " ".join(data.split())
+
     def remove_non_ASCII(self, data):
         return data.encode('ascii', 'replace').decode('ascii')
 
@@ -174,15 +183,6 @@ class Negation(Preprocessing):
 class Tokenization(Preprocessing):
     def __init__(self, data):
         super().__init__(data)
-
-    def remove_punctuation(self, data):
-        return data.translate(str.maketrans("","",string.punctuation))
-
-    def remove_number(self, data):
-        return ''.join((word for word in data if not word.isdigit()))
-
-    def remove_whitespace(self, data):
-        return " ".join(data.split())
     
     def token(self, data):
         return re.split('\W+', data)

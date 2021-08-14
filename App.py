@@ -18,27 +18,29 @@ class App:
         caseFold = caseFold.case_folding()
         st.write(caseFold)
 
-        st.write("Noise Removal")
-        noiseRemoval = Noise(caseFold)
-        cleanHtml = caseFold.apply(noiseRemoval.clean_html)
-        removeSpecial = cleanHtml.apply(noiseRemoval.remove_text_special)
-        removeNonASCII = removeSpecial.apply(noiseRemoval.remove_non_ASCII)
-        removeSingleChar = removeNonASCII.apply(noiseRemoval.remove_single_char)
-        st.write(removeSingleChar)
-
         st.write("Normalization")
-        normalization = Normalization(removeSingleChar)
-        convertEmot =  removeSingleChar.apply(normalization.convert_emot)
+        normalization = Normalization(caseFold)
+        convertEmot =  caseFold.apply(normalization.convert_emot)
         removeDuplicate = convertEmot.apply(normalization.remove_duplicate)
         slangWord = removeDuplicate.apply(normalization.convert_slang)
         st.write(slangWord)
 
+        st.write("Noise Removal")
+        noiseRemoval = Noise(slangWord)
+        cleanHtml = slangWord.apply(noiseRemoval.clean_html)
+        removeSpecial = cleanHtml.apply(noiseRemoval.remove_text_special)
+        removeNonASCII = removeSpecial.apply(noiseRemoval.remove_non_ASCII)
+        removePuntuation = removeNonASCII.apply(noiseRemoval.remove_punctuation)
+        removeNumber =  removePuntuation.apply(noiseRemoval.remove_number)
+        removeWhitespace = removeNumber.apply(noiseRemoval.remove_whitespace)
+        removeSingleChar = removeWhitespace.apply(noiseRemoval.remove_single_char)
+        st.write(removeSingleChar)
+
         st.write("Stopword Removal")
-        stopword = Stopword(slangWord)
-        stopwordRemoval = slangWord.apply(stopword.stopwords_removal)
+        stopword = Stopword(removeSingleChar)
+        stopwordRemoval = removeSingleChar.apply(stopword.stopwords_removal)
         st.write(stopwordRemoval)
 
-        
         st.write("Convert Negation")
         negation = Negation(stopwordRemoval)
         convertNegation = stopwordRemoval.apply(negation.convert_negation)
@@ -46,10 +48,7 @@ class App:
         
         st.write("Tokenization")
         tokenization = Tokenization(convertNegation)
-        removePuntuation = convertNegation.apply(tokenization.remove_punctuation)
-        removeNumber =  removePuntuation.apply(tokenization.remove_number)
-        removeWhitespace = removeNumber.apply(tokenization.remove_whitespace)
-        token = removeWhitespace.apply(tokenization.token)
+        token = convertNegation.apply(tokenization.token)
         st.write(token)
 
         return token

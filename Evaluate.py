@@ -41,6 +41,12 @@ class KFold:
             dataset_split.append(np.asarray(fold))
 
         return dataset_split
+    
+    def fold_list(self, f, number):
+            fold = list(range(f))
+            fold.pop(number)
+
+            return fold
 
     def set_train_data(self, folds, dataset):
         for fold in folds:
@@ -50,12 +56,6 @@ class KFold:
                 cv = np.concatenate((cv, dataset[fold]), axis=0)
         
         return cv
-
-    def fold_list(self, f, number):
-        fold = list(range(f))
-        fold.pop(number)
-
-        return fold
     
     def train_data_dict(self, trainData):
         trainSet = {0:[], 1:[]}
@@ -74,10 +74,10 @@ class KFold:
         return testSet
 
     def set_accuracy(self, acc1, acc2):
-        accuracyDict = {"fold accuracy": [], "kFold accuracy": 0}
+        accuracyDict = {"Fold accuracy": [], "kFold accuracy": 0}
 
         for fold in acc1:
-            accuracyDict["fold accuracy"].append(fold)
+            accuracyDict["Fold accuracy"].append(fold)
 
         accuracyDict["kFold accuracy"] = acc2
 

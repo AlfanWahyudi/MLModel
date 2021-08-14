@@ -4,8 +4,8 @@ import numpy as np
 
 class Data:
     def __init__(self):
-        self.__df = None
-        self.__dataset = None
+        self.df = None
+        self.dataset = None
 
     @property
     def df(self):
@@ -24,7 +24,8 @@ class Data:
         self.__dataset = input
 
     def input_csv(self):
-        self.dataset = st.file_uploader("Choose a CSV file", type=['csv'])
+        self.dataset = st.sidebar.file_uploader("Choose a CSV file", type=['csv'])
+
         return self.dataset
 
     def explore(self, df):
@@ -47,13 +48,9 @@ class Data:
 
 
     def choose_column(self, df):
-        cols = st.multiselect('Columns', 
+        cols = st.sidebar.multiselect('Choose Columns', 
                                    df.columns.tolist(),
                                    df.columns.tolist())
         df = df[cols]
-        return df
 
-    if __name__ == "__main__":
-        input_csv()
-        explore()
-        choose_column()
+        return df

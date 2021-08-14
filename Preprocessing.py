@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import string 
-import re #regex library
+import re 
 import itertools
 from nltk.corpus import stopwords
 
@@ -29,7 +29,7 @@ class Noise(Preprocessing):
     
     def clean_html(self, data):
         cleanr = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
-        cleantext = re.sub(cleanr, '', data)
+        cleantext = re.sub(cleanr, ' ', data)
 
         return cleantext
 
@@ -42,15 +42,6 @@ class Noise(Preprocessing):
     def remove_non_ASCII(self, data):
         return data.encode('ascii', 'replace').decode('ascii')
 
-    def remove_punctuation(self, data):
-        return data.translate(str.maketrans("","",string.punctuation))
-
-    def remove_number(self, data):
-        return ''.join((word for word in data if not word.isdigit()))
-
-    def remove_whitespace(self, data):
-        return " ".join(data.split())
-
     def remove_single_char(self, data):
         return re.sub(r"\b[a-zA-Z]\b", "", data)
 
@@ -58,7 +49,7 @@ class Normalization(Preprocessing):
     def __init__(self, data):
         super().__init__(data)
         self.emoticon_dict = {"senang" : [">:]", ":-)", ":)", ":o)", ":]", ":3", ":c)", ":>", "=]", "8)", "=)", ":}", ":^)"], 
-                "tertawa" : [">:D", ":-D", ":D", "8-D", "8D", "x-D", "xD", "XD", "=-D", "=D", "=-3", "=3"], 
+                "tertawa" : [">:D", ":-D", ":D", "8-D", "8D", "x-D", "xD", "XD", "=-D", "=D", "=-3", "=3", "xd"], 
                 "sedih" : [">:[", ":-(", ":(", ":-c", ":c", ":-<", ":<", ":-[", ":[", ":{", ">", ".><.", "<>", ".<", ":’("],
                 "jilat" : [">:P", ":-P", ":P", "X-P", "x-p", "xp", "XP", ":-p", ":p", "=p", ":-Þ", ":Þ", ":-b", ":b"],
                 "terkejut" : [">:o", ">:O", ":-O", ":O", "°o°", "°O°", ":O", "o_O", "o.O", "8-0"],
@@ -112,7 +103,7 @@ class Normalization(Preprocessing):
         return dict1_list
 
     def convert_slang(self, data):
-        dictionary =  self.join_two_dict('slangword.txt','kbba.txt')
+        dictionary =  self.join_two_dict('data/slangword.txt','data/kbba.txt')
         removeDuplicate = self.remove_duplicate(data)
         words = removeDuplicate.split()
 
@@ -133,6 +124,32 @@ class Normalization(Preprocessing):
                         words[word] = txt
                         
         return ' '.join(words)
+
+class Stopword(Preprocessing):
+    def __init__(self, data):
+        super().__init__(data)
+
+    def combine_stopword_dict(self):
+        list_stopwords = stopwords.words('indonesian')
+        list_stopwords.extend(["yg", "dg", "rt", "dgn", "ny", "d", 'klo', 
+                            'kalo', 'amp', 'biar', 'bikin', 'bilang', 
+                            'gak', 'ga', 'krn', 'nya', 'nih', 'sih', 
+                            'si', 'tau', 'tdk', 'tuh', 'utk', 'ya', 
+                            'jd', 'jgn', 'sdh', 'aja', 'n', 't', 
+                            'nyg', 'hehe', 'pen', 'u', 'nan', 'loh', 'rt',
+                            '&amp', 'yah'])
+
+        txt_stopword = pd.read_csv("data/stopwords.txt", names= ["stopwords"], header = None)
+        list_stopwords.extend(txt_stopword["stopwords"][0].split(' '))
+        set_stopwords = set(list_stopwords)
+
+        return set_stopwords
+
+    def stopwords_removal(self, data):
+        words = data.split()
+        stopwordsDict = self.combine_stopword_dict()
+        
+        return ' '.join(word for word in words if word not in stopwordsDict)
 
 class Negation(Preprocessing):
     def __init__(self, data):
@@ -157,30 +174,16 @@ class Negation(Preprocessing):
 class Tokenization(Preprocessing):
     def __init__(self, data):
         super().__init__(data)
+
+    def remove_punctuation(self, data):
+        return data.translate(str.maketrans("","",string.punctuation))
+
+    def remove_number(self, data):
+        return ''.join((word for word in data if not word.isdigit()))
+
+    def remove_whitespace(self, data):
+        return " ".join(data.split())
     
     def token(self, data):
         return re.split('\W+', data)
 
-class Stopword(Preprocessing):
-    def __init__(self, data):
-        super().__init__(data)
-
-    def combine_stopword_dict(self):
-        list_stopwords = stopwords.words('indonesian')
-        list_stopwords.extend(["yg", "dg", "rt", "dgn", "ny", "d", 'klo', 
-                            'kalo', 'amp', 'biar', 'bikin', 'bilang', 
-                            'gak', 'ga', 'krn', 'nya', 'nih', 'sih', 
-                            'si', 'tau', 'tdk', 'tuh', 'utk', 'ya', 
-                            'jd', 'jgn', 'sdh', 'aja', 'n', 't', 
-                            'nyg', 'hehe', 'pen', 'u', 'nan', 'loh', 'rt',
-                            '&amp', 'yah'])
-
-        txt_stopword = pd.read_csv("stopwords.txt", names= ["stopwords"], header = None)
-        list_stopwords.extend(txt_stopword["stopwords"][0].split(' '))
-        set_stopwords = set(list_stopwords)
-
-        return set_stopwords
-
-    def stopwords_removal(self, data):
-        stopwordsDict = self.combine_stopword_dict()
-        return [word for word in data if word not in stopwordsDict]

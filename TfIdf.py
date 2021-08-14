@@ -4,7 +4,6 @@ import ast
 import math
 
 class TfIdf:
-    
     def __init__(self, dataClean):
         self.__dataClean = dataClean
 
@@ -15,7 +14,6 @@ class TfIdf:
     @dataClean.setter
     def dataClean(self, input):
         self.__dataClean = input
-
 
     def convert_text_list(self, dataClean):
         texts = ast.literal_eval(dataClean)
@@ -65,9 +63,3 @@ class TfIdf:
             TF_IDF_list.append(TF_IDF_dict)
 
         return TF_IDF_list
-
-    def label_to_TfIdf(self):
-        pass
-
-    
-    

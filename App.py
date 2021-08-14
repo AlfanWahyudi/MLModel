@@ -1,115 +1,112 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-from Data import *
-from Preprocessing import *
+from streamlit.elements.number_input import Number
+from data import *
+from preprocessing import *
 from TfIdf import *
 from classification import *
-from Evaluate import *
+from evaluate import *
     
 class App:
-    def main_app():
-        task = st.sidebar.radio('Navigasi', ['Data Cleaning', 'TF-IDF', 'LMKNN'], 0)
+    def __init__(self):
+        pass
 
-        # Add a selectbox to the sidebar:
-        add_selectbox = st.sidebar.selectbox(
-            'How would you like to be contacted?',
-            ('Email', 'Home phone', 'Mobile phone')
-        )
-
-        # Add a slider to the sidebar:
-        add_slider = st.sidebar.slider(
-            'Select a range of values',
-            0.0, 100.0, (25.0, 75.0)
-        )
-
-        dataComment = Data()
-
-
-        csv_file = dataComment.input_csv()
-        if not csv_file:
-            st.write("Upload CSV file to get started")
-            return
-        
-        df = pd.read_csv(csv_file)   
-        data_choose = dataComment.choose_column(df)
-        st.write(data_choose)
-        
-        #get column name of data 
-        column_name = data_choose.columns.values.tolist()
-        # dataset = data_choose[column_name[0]].str.encode('ascii', 'ignore')
-        
-        #Preprocessing
+    def preprocessing(self, text_data):
         st.write("Case Folding")
-        # caseFolding = Preprocessing.case_folding(data_choose[column_name[0]])
-    
-  
-        # caseFolding
-        caseFold = CaseFold(data_choose[column_name[0]])
+        caseFold = CaseFold(text_data)
         caseFold = caseFold.case_folding()
         st.write(caseFold)
 
+        st.write("Noise Removal")
+        noiseRemoval = Noise(caseFold)
+        cleanHtml = caseFold.apply(noiseRemoval.clean_html)
+        removeSpecial = cleanHtml.apply(noiseRemoval.remove_text_special)
+        removeNonASCII = removeSpecial.apply(noiseRemoval.remove_non_ASCII)
+        removeSingleChar = removeNonASCII.apply(noiseRemoval.remove_single_char)
+        st.write(removeSingleChar)
+
         st.write("Normalization")
-        normalization = Normalization(caseFold)
-        convertEmot =  caseFold.apply(normalization.convert_emot)
+        normalization = Normalization(removeSingleChar)
+        convertEmot =  removeSingleChar.apply(normalization.convert_emot)
         removeDuplicate = convertEmot.apply(normalization.remove_duplicate)
         slangWord = removeDuplicate.apply(normalization.convert_slang)
         st.write(slangWord)
 
-        st.write("Noise Removal")
-        noiseRemoval = Noise(slangWord)
-        cleanHtml = slangWord.apply(noiseRemoval.clean_html)
-        removeSpecial = cleanHtml.apply(noiseRemoval.remove_text_special)
-        removeNonASCII = removeSpecial.apply(noiseRemoval.remove_non_ASCII)
-        removePuntuation = removeNonASCII.apply(noiseRemoval.remove_punctuation)
-        removeNumber =  removePuntuation.apply(noiseRemoval.remove_number)
-        removeWhitespace = removeNumber.apply(noiseRemoval.remove_whitespace)
-        removeSingleChar = removeWhitespace.apply(noiseRemoval.remove_single_char)
-        st.write(removeSingleChar)
+        st.write("Stopword Removal")
+        stopword = Stopword(slangWord)
+        stopwordRemoval = slangWord.apply(stopword.stopwords_removal)
+        st.write(stopwordRemoval)
 
+        
         st.write("Convert Negation")
-        negation = Negation(removeSingleChar)
-        convertNegation = removeSingleChar.apply(negation.convert_negation)
+        negation = Negation(stopwordRemoval)
+        convertNegation = stopwordRemoval.apply(negation.convert_negation)
         st.write(convertNegation)
         
         st.write("Tokenization")
         tokenization = Tokenization(convertNegation)
-        token = convertNegation.apply(tokenization.token)
+        removePuntuation = convertNegation.apply(tokenization.remove_punctuation)
+        removeNumber =  removePuntuation.apply(tokenization.remove_number)
+        removeWhitespace = removeNumber.apply(tokenization.remove_whitespace)
+        token = removeWhitespace.apply(tokenization.token)
         st.write(token)
 
-        st.write("Stopword Removal")
-        stopword = Stopword(token)
-        stopwordRemoval = token.apply(stopword.stopwords_removal)
-        st.write(stopwordRemoval)
-        stopwordRemoval.to_csv("Text_Preprocessing.csv")
+        return token
 
-        if st.button("Proses TF-IDF"):
-            st.write("TF-IDF")
-            tfIdf = TfIdf(stopwordRemoval)
-            tf = stopwordRemoval.apply(tfIdf.calc_tf)
-            df = tfIdf.calc_df(stopwordRemoval)
-            idf = tfIdf.calc_idf(len(stopwordRemoval), df)
-            tfIdfResult = tfIdf.tf_idf(tf, idf)
+    def main_app(self):
+        dataComment = Data()
+        csv_file = dataComment.input_csv()
 
-            df = pd.DataFrame(tfIdfResult)
-            new_df = df.assign(Label = data_choose[column_name[1]])
-            new_df = new_df.fillna(0)
-
-            st.write(new_df)
-
-            dataset = pd.DataFrame(new_df)
-
-            # full_data = new_df.astype(float).values.tolist()
-            # st.write(full_data)
-
-            k = 3
-            f = 5
-            lmknn = LMKNN(k)
-            kfold = KFold(dataset, f, lmknn)
-            result = kfold.execute_cross_val()
-            st.write(result)
-            
+        if not csv_file:
+            st.info("Upload CSV file to get started")
             return
 
-    if __name__ == "__main__":
-        main_app()
+        df = pd.read_csv(csv_file)
+        data_choose = dataComment.choose_column(df)
+        
+        st.subheader("Dataset")
+        st.write(data_choose)
+        column_name = data_choose.columns.values.tolist()
+        
+        st.subheader("Preprocessing")
+        cleanData = self.preprocessing(data_choose[column_name[0]])
+ 
+        st.subheader("TF-IDF")
+        tfIdf = TfIdf(cleanData)
+        tf = cleanData.apply(tfIdf.calc_tf)
+        df = tfIdf.calc_df(cleanData)
+        idf = tfIdf.calc_idf(len(cleanData), df)
+        tfIdfResult = tfIdf.tf_idf(tf, idf)
+
+        dfResult = pd.DataFrame(tfIdfResult)
+        addLabel = dfResult.assign(Label = data_choose[column_name[1]])
+        dataset = addLabel.fillna(0)
+        dataset.to_csv("hasil ekstraksi fitur.csv")
+        st.write(dataset)
+
+        st.subheader("Local Mean-Based k-Nearest Neighbor")
+        with st.form(key='lmknn'):
+            k = st.text_input(label='Input K')
+            f = st.text_input(label="Input Fold")
+            btnSubmit = st.form_submit_button(label='Predict')
+
+        if btnSubmit:
+            # dataset = pd.DataFrame(final)
+            lmknn = LMKNN(int(k))
+            kfold = KFold(dataset, int(f), lmknn)
+            result = kfold.execute_cross_val()
+
+            for key in result:
+                if key == "Fold accuracy":
+                    st.write(key)
+                    number = 0
+                    for value in result[key]:
+                        number += 1
+                        st.write(str(number),")", str(value))
+                else:
+                    st.write("Accuracy: " , str(result[key]))
+
+if __name__ == "__main__":
+    app = App()
+    app.main_app()

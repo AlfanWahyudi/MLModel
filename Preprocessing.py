@@ -58,9 +58,9 @@ class Normalization(Preprocessing):
     def __init__(self, data):
         super().__init__(data)
         self.emoticon_dict = {"senang" : [">:]", ":-)", ":)", ":o)", ":]", ":3", ":c)", ":>", "=]", "8)", "=)", ":}", ":^)"], 
-                "tertawa" : [">:D", ":-D", ":D", "8-D", "8D", "x-D", "xD", "XD", "=-D", "=D", "=-3", "=3", "xd"], 
-                "sedih" : [">:[", ":-(", ":(", ":-c", ":c", ":-<", ":<", ":-[", ":[", ":{", ">", ".><.", "<>", ".<", ":’("],
-                "jilat" : [">:P", ":-P", ":P", "X-P", "x-p", "xp", "XP", ":-p", ":p", "=p", ":-Þ", ":Þ", ":-b", ":b"],
+                "tertawa" : [">:d", ":-d", ":d", "8-d", "8d", "x-d", "xd", "=-d", "=d", "=-3", "=3"], 
+                "sedih" : [">:[", ":-(", ":(", ":-c", ":c", ":-<", ":<", ":-[", ":[", ":{", "> ", ".><.", "<>", ".<", ":’("],
+                "jilat" : [">:P", ":P", "X-P", "x-p", "xp", ":-p", ":p", "=p", ":-Þ", ":Þ", ":-b", ":b"],
                 "terkejut" : [">:o", ">:O", ":-O", ":O", "°o°", "°O°", ":O", "o_O", "o.O", "8-0"],
                 "kesal" : [">:/", ":-/", ":-.", ":/", "=/"],
                 "ekspresi datar" : [":|", ":-|"]}
@@ -129,8 +129,8 @@ class Normalization(Preprocessing):
         for word in range(len(words)):
             for txt, emots in self.emoticon_dict.items():
                 for emot in range(len(emots)):
-                    if words[word] == emots[emot]:
-                        words[word] = txt
+                    result = words[word].replace(emots[emot], " "+txt+" ")
+                    words[word] = result
                         
         return ' '.join(words)
 

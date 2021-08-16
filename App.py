@@ -81,7 +81,7 @@ class App:
         dfResult = pd.DataFrame(tfIdfResult)
         addLabel = dfResult.assign(Label = data_choose[column_name[1]])
         dataset = addLabel.fillna(0)
-        dataset.to_csv("hasil ekstraksi fitur.csv")
+        # dataset.to_csv("hasil ekstraksi fitur.csv")
         st.write(dataset)
 
         st.subheader("Local Mean-Based k-Nearest Neighbor")

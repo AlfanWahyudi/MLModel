@@ -33,17 +33,25 @@ class TfIdf:
             TF_dict[term] = TF_dict[term] / len(dataClean)
 
         return TF_dict
-        
+
+    def get_word(self):
+        words = []
+    
+        for word in self.dataClean:
+            for term in word:
+                words.append(term)
+            
+        return words
 
     def calc_df(self, dataClean):
         count_DF = {}
-
-        for word in dataClean:
-            for term in word:
-                if term in count_DF:
+        wordsList = self.get_word()
+        
+        for term in wordsList:
+            count_DF[term] = 0
+            for word in dataClean:
+                if term in word:
                     count_DF[term] += 1
-                else:
-                    count_DF[term] = 1
 
         return count_DF
 

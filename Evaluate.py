@@ -59,27 +59,28 @@ class KFold:
     
     def train_data_dict(self, trainData):
         trainSet = {0:[], 1:[]}
-
+    
         for index in trainData:
-            trainSet[index[-1]].append(index[:-1])
+                trainSet[index[-1]].append(index[:-1])
         
         return trainSet
 
     def test_data_dict(self, testData):
         testSet = {0:[], 1:[]}
 
+
         for index in testData:
             testSet[index[-1]].append(index[:-1])
-        
+            
         return testSet
 
     def set_accuracy(self, acc1, acc2):
-        accuracyDict = {"Fold accuracy": [], "kFold accuracy": 0}
+        accuracyDict = {"Fold accuracy": [], "accuracy": 0}
 
         for fold in acc1:
             accuracyDict["Fold accuracy"].append(fold)
 
-        accuracyDict["kFold accuracy"] = acc2
+        accuracyDict["accuracy"] = acc2
 
         return accuracyDict
 
@@ -90,14 +91,14 @@ class KFold:
         for number in range(self.f):
             foldList = self.fold_list(self.f, number)
             cv = self.set_train_data(foldList, data)
-            trainList = cv.tolist()
-            testList = data[number].tolist()
+            trainList = cv.astype(float).tolist()
+            testList = data[number].astype(float).tolist()
             train_set = self.train_data_dict(trainList)
             test_set = self.test_data_dict(testList)
             acc = self.lmknn.pred(train_set, test_set, self.lmknn.k)
             results.append(acc)
 
-        kFoldAccuracy = sum(results)/len(results)
-        result = self.set_accuracy(results, kFoldAccuracy)
+        accuracy = float(sum(results)/len(results))
+        result = self.set_accuracy(results, accuracy)
 
         return result

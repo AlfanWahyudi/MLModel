@@ -61,7 +61,7 @@ class LMKNN:
                     if x == label:
                         summation = np.add(np.array(features[y[1]]), prev)
                         prev = summation
-                result = np.true_divide(summation, len(sorted(distancesData[x])[:k]))
+                result = np.true_divide(summation, k)
             local_mean[x] = list(result)
             summation = 0
         

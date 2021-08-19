@@ -81,7 +81,6 @@ class App:
         dfResult = pd.DataFrame(tfIdfResult)
         addLabel = dfResult.assign(Label = data_choose[column_name[1]])
         dataset = addLabel.fillna(0)
-        # dataset.to_csv("hasil ekstraksi fitur.csv")
         st.write(dataset)
 
         st.subheader("Local Mean-Based k-Nearest Neighbor")
@@ -91,7 +90,6 @@ class App:
             btnSubmit = st.form_submit_button(label='Predict')
 
         if btnSubmit:
-            # dataset = pd.DataFrame(final)
             lmknn = LMKNN(int(k))
             kfold = KFold(dataset, int(f), lmknn)
             result = kfold.execute_cross_val()

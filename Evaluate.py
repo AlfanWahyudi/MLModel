@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
 from random import randrange
+from sklearn.model_selection import KFold
 from classification import LMKNN
 
-class KFold:
+class KFoldCV:
     def __init__(self, dataset, f, lmknn):
         self.__dataset = dataset
         self.__f = f
@@ -24,38 +25,6 @@ class KFold:
     @f.setter
     def f(self, input):
         self.__f = input
-
-    def cross_val_split(self, dataset, folds):
-        dataset_split = []
-        df_copy = dataset
-        fold_size = int(df_copy.shape[0] / folds)
-
-        for x in range(folds):
-            fold = []
-            while len(fold) < fold_size:
-                random = randrange(df_copy.shape[0])
-                index = df_copy.index[random]
-                fold.append(df_copy.loc[index].values.tolist())
-                df_copy = df_copy.drop(index)
-
-            dataset_split.append(np.asarray(fold))
-
-        return dataset_split
-    
-    def fold_list(self, f, number):
-            fold = list(range(f))
-            fold.pop(number)
-
-            return fold
-
-    def set_train_data(self, folds, dataset):
-        for fold in folds:
-            if fold == folds[0]:
-                cv = dataset[fold]
-            else:
-                cv = np.concatenate((cv, dataset[fold]), axis=0)
-        
-        return cv
     
     def train_data_dict(self, trainData):
         trainSet = {0:[], 1:[]}
@@ -74,27 +43,25 @@ class KFold:
             
         return testSet
 
-    def set_accuracy(self, acc1, acc2):
+    def set_accuracy(self, foldAcc, mean):
         accuracyDict = {"Fold accuracy": [], "accuracy": 0}
 
-        for fold in acc1:
+        for fold in foldAcc:
             accuracyDict["Fold accuracy"].append(fold)
 
-        accuracyDict["accuracy"] = acc2
+        accuracyDict["accuracy"] = mean
 
         return accuracyDict
 
     def execute_cross_val(self):
-        data = self.cross_val_split(self.dataset, self.f)
         results = []
+        kf = KFold(n_splits=self.f)
         
-        for number in range(self.f):
-            foldList = self.fold_list(self.f, number)
-            cv = self.set_train_data(foldList, data)
-            trainList = cv.astype(float).tolist()
-            testList = data[number].astype(float).tolist()
-            train_set = self.train_data_dict(trainList)
-            test_set = self.test_data_dict(testList)
+        for train_index, test_index in kf.split(self.dataset):
+            trainData = self.dataset.iloc[train_index].values.astype(float).tolist()
+            testData = self.dataset.iloc[test_index].values.astype(float).tolist()
+            train_set = self.train_data_dict(trainData)
+            test_set = self.test_data_dict(testData)
             acc = self.lmknn.pred(train_set, test_set, self.lmknn.k)
             results.append(acc)
 

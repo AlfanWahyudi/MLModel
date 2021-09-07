@@ -4,6 +4,7 @@ import string
 import re 
 import itertools
 from nltk.corpus import stopwords
+from gensim.utils import tokenize
 
 class Preprocessing:
     def __init__(self, data):
@@ -185,5 +186,7 @@ class Tokenization(Preprocessing):
         super().__init__(data)
     
     def token(self, data):
-        return re.split('\W+', data)
+        token = list(tokenize(data))
+        
+        return token
 

@@ -55,13 +55,15 @@ class KFoldCV:
 
     def execute_cross_val(self):
         results = []
+
         kf = KFold(n_splits=self.f)
-        
         for train_index, test_index in kf.split(self.dataset):
             trainData = self.dataset.iloc[train_index].values.astype(float).tolist()
             testData = self.dataset.iloc[test_index].values.astype(float).tolist()
+
             train_set = self.train_data_dict(trainData)
             test_set = self.test_data_dict(testData)
+
             acc = self.lmknn.pred(train_set, test_set, self.lmknn.k)
             results.append(acc)
 

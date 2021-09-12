@@ -121,7 +121,7 @@ class Normalization(Preprocessing):
             for index in range(len(dictionary)):
                 if words[word] == dictionary[index][0]:
                     words[word] = dictionary[index][1]
-                    
+     
         return ' '.join(words)
 
     def convert_emot(self, data):

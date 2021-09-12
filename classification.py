@@ -1,10 +1,4 @@
 import numpy as np
-from math import sqrt
-import warnings
-from collections import Counter
-import pandas as pd
-import random
-
 class LMKNN:
     def __init__(self, k):
         self.__dataTrain = {}

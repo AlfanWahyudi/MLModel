@@ -1,13 +1,12 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-from streamlit.elements.number_input import Number
 from data import *
 from preprocessing import *
 from TfIdf import *
 from classification import *
 from evaluate import *
-    
+
 class App:
     def __init__(self):
         pass
@@ -70,7 +69,7 @@ class App:
         
         st.subheader("Preprocessing")
         cleanData = self.preprocessing(data_choose[column_name[0]])
- 
+
         st.subheader("TF-IDF")
         tfIdf = TfIdf(cleanData)
         tf = cleanData.apply(tfIdf.calc_tf)
@@ -91,7 +90,7 @@ class App:
 
         if btnSubmit:
             lmknn = LMKNN(int(k))
-            kfold = KFold(dataset, int(f), lmknn)
+            kfold = KFoldCV(dataset, int(f), lmknn)
             result = kfold.execute_cross_val()
 
             for key in result:
